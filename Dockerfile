@@ -14,28 +14,41 @@ RUN apt-get update && apt-get install -y \
     tzdata \
     python3.8 python3.8-dev python3.8-venv \
     python3-pip \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    wget \
+    curl \
+    llvm \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    libffi-dev \
+    liblzma-dev \
+    python3-openssl \
     && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
     && dpkg-reconfigure --frontend noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-# Add deadsnakes PPA for Python 3.10 and force update
-RUN add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && apt-get install -y \
-    python3.10 python3.10-distutils && \
-    rm -rf /var/lib/apt/lists/*
+# Install Python 3.10 from source
+RUN cd /usr/src && \
+    wget https://www.python.org/ftp/python/3.10.9/Python-3.10.9.tgz && \
+    tar xzf Python-3.10.9.tgz && \
+    cd Python-3.10.9 && \
+    ./configure --enable-optimizations && \
+    make altinstall && \
+    rm -f /usr/src/Python-3.10.9.tgz
 
-# Manually install python3.10-dev and python3.10-venv
-RUN apt-get update && apt-get install -y \
-    python3.10-dev python3.10-venv && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set alternatives for python
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 2 \
-    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
-
-# Upgrade pip
+# Install pip and upgrade it
+RUN python3.10 -m ensurepip --upgrade
 RUN python3.10 -m pip install --upgrade pip
-RUN python3.8 -m pip install --upgrade pip
+
+# Install the virtualenv package for Python 3.10
+RUN python3.10 -m pip install virtualenv
 
 # Create virtual environments for PyTorch versions
 RUN python3.10 -m venv /env_torch200
