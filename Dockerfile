@@ -32,8 +32,13 @@ RUN apt-get update && apt-get install -y \
     python3-openssl \
     && rm -rf /var/lib/apt/lists/*
 
-# Add deadsnakes PPA for Python 3.10 and install Python 3.10
-RUN add-apt-repository ppa:deadsnakes/ppa && \
+# Add deadsnakes PPA manually for Python 3.10 and install Python 3.10
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg2 \
+    lsb-release && \
+    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | tee /etc/apt/trusted.gpg.d/microsoft.asc && \
+    curl -fsSL https://packages.microsoft.com/config/ubuntu/20.04/prod.list | tee /etc/apt/sources.list.d/microsoft-prod.list && \
     apt-get update && \
     apt-get install -y python3.10 python3.10-dev python3.10-venv && \
     rm -rf /var/lib/apt/lists/*
