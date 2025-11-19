@@ -1,14 +1,21 @@
 # Base image: CUDA 11.7 + cuDNN 8, developer toolkit (nvcc included)
 FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 
+# Make apt non-interactive to avoid tzdata prompt
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
 # Install dependencies and Python 3.8 first
 RUN apt-get update && apt-get install -y \
     software-properties-common \
     wget \
     git \
     curl \
+    tzdata \
     python3.8 python3.8-dev python3.8-venv \
     python3-pip \
+    && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
+    && dpkg-reconfigure --frontend noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # Add deadsnakes PPA for Python 3.10
