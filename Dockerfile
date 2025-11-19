@@ -31,23 +31,21 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 2 
     && python3.8 -m pip install --upgrade pip
 
 # --- Layer 3: PyTorch 2.0.0 Environment (using Python 3.8) ---
-# Create and install dependencies in PyTorch 2.0.0 virtual environment using PYTHON 3.8
+# FIX: Use PyTorch index as the primary index for reliable CUDA wheel install.
 RUN python3.8 -m venv /env_torch200_py38 \
     && /env_torch200_py38/bin/pip install \
-    'torch==2.0.0+cu117' 'torchvision' 'torchaudio' \
-    --index-url https://pypi.org/simple/ \
-    --extra-index-url https://download.pytorch.org/whl/cu117
+    'torch==2.0.0' 'torchvision' 'torchaudio' \
+    --index-url https://download.pytorch.org/whl/cu117
 
 # --- Layer 4: PyTorch 2.0.1 Environment (using Python 3.8) ---
-# Create and install dependencies in PyTorch 2.0.1 virtual environment using PYTHON 3.8
+# FIX: Use PyTorch index as the primary index for reliable CUDA wheel install.
 RUN python3.8 -m venv /env_torch201_py38 \
     && /env_torch201_py38/bin/pip install \
-    'torch==2.0.1+cu117' 'torchvision' 'torchaudio' \
-    --index-url https://pypi.org/simple/ \
-    --extra-index-url https://download.pytorch.org/whl/cu117
+    'torch==2.0.1' 'torchvision' 'torchaudio' \
+    --index-url https://download.pytorch.org/whl/cu117
 
 # --- Final Configuration ---
-# Rename virtual environments and add to PATH
+# Add virtualenvs to PATH for easy access
 ENV PATH="/env_torch200_py38/bin:/env_torch201_py38/bin:$PATH"
 
 # Default command
