@@ -1,15 +1,20 @@
 # Base image: CUDA 11.7 + cuDNN 8, developer toolkit (nvcc included)
 FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 
-# Install dependencies
+# Install dependencies and Python 3.8 first
 RUN apt-get update && apt-get install -y \
     software-properties-common \
     wget \
     git \
     curl \
     python3.8 python3.8-dev python3.8-venv \
-    python3.10 python3.10-dev python3.10-venv \
-    python3-pip && \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add deadsnakes PPA for Python 3.10
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y python3.10 python3.10-dev python3.10-venv && \
     rm -rf /var/lib/apt/lists/*
 
 # Set alternatives for python
