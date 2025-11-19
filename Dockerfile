@@ -1,17 +1,19 @@
-# Base image: CUDA 11.7 + cuDNN 8, developer toolkit (nvcc included)
-FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
+# Base image: CUDA 11.7 + cuDNN 8 (runtime variant)
+FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu20.04
 
-# Make apt non-interactive to avoid tzdata prompt
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Etc/UTC
+# Set the timezone to avoid interactive prompts
+ENV TZ=America/New_York
+RUN apt-get update && apt-get install -y \
+    tzdata && \
+    ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && \
+    dpkg-reconfigure --frontend noninteractive tzdata
 
-# Install dependencies and Python 3.8 first
+# Install dependencies (python, pip, curl, etc.)
 RUN apt-get update && apt-get install -y \
     software-properties-common \
     wget \
     git \
     curl \
-    tzdata \
     python3.8 python3.8-dev python3.8-venv \
     python3-pip \
     build-essential \
@@ -20,8 +22,6 @@ RUN apt-get update && apt-get install -y \
     libbz2-dev \
     libreadline-dev \
     libsqlite3-dev \
-    wget \
-    curl \
     llvm \
     libncurses5-dev \
     libncursesw5-dev \
@@ -30,27 +30,23 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     liblzma-dev \
     python3-openssl \
-    && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
-    && dpkg-reconfigure --frontend noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python 3.10 from source
-RUN cd /usr/src && \
-    wget https://www.python.org/ftp/python/3.10.9/Python-3.10.9.tgz && \
-    tar xzf Python-3.10.9.tgz && \
-    cd Python-3.10.9 && \
-    ./configure --enable-optimizations && \
-    make altinstall && \
-    rm -f /usr/src/Python-3.10.9.tgz
+# Add deadsnakes PPA for Python 3.10 and install Python 3.10
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y python3.10 python3.10-dev python3.10-venv && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install pip and upgrade it
-RUN python3.10 -m ensurepip --upgrade
+# Set python3.10 as the default python
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 2 \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+
+# Upgrade pip for both Python versions
 RUN python3.10 -m pip install --upgrade pip
+RUN python3.8 -m pip install --upgrade pip
 
-# Install the virtualenv package for Python 3.10
-RUN python3.10 -m pip install virtualenv
-
-# Create virtual environments for PyTorch versions
+# Create virtual environments for PyTorch 2.0 versions
 RUN python3.10 -m venv /env_torch200
 RUN /env_torch200/bin/pip install torch==2.0.0+cu117 torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
 
@@ -60,5 +56,5 @@ RUN /env_torch201/bin/pip install torch==2.0.1+cu117 torchvision torchaudio --ex
 # Add virtualenvs to PATH (optional)
 ENV PATH="/env_torch200/bin:/env_torch201/bin:$PATH"
 
-# Default command
+# Set default command
 CMD ["bash"]
