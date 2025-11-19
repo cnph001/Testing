@@ -1,2 +1,2 @@
 # Testing
-Test - creating image for runpod
+Test - creating image for runpod.
