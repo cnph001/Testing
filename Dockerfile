@@ -6,22 +6,20 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
 # --- Layer 1: System Setup and Python Installation ---
-# Install dependencies, Python 3.8, and Python 3.10
+# Install necessary dependencies and add repository for Python 3.10
 RUN apt-get update && apt-get install -y \
     software-properties-common \
     wget \
     git \
     curl \
     tzdata \
-    # Add PPA for Python 3.10
+    apt-transport-https \
     && add-apt-repository ppa:deadsnakes/ppa -y \
     && apt-get update \
-    # Install required Python versions
     && apt-get install -y \
     python3.8 python3.8-dev python3.8-venv \
     python3.10 python3.10-dev python3.10-venv \
     python3-pip \
-    # Set timezone
     && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
     && dpkg-reconfigure --frontend noninteractive tzdata \
     # Clean up APT cache to keep the image small
@@ -37,12 +35,10 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 2
 
 # --- Layer 3: Virtual Environments for Python 3.8 ---
 # Create and install PyTorch 2.0.0 and 2.0.1 in Python 3.8
-# Pinned to compatible torchvision/torchaudio versions to resolve dependency errors
 RUN python3.8 -m venv /env_py38_torch200 \
     && /env_py38_torch200/bin/pip install \
     'torch==2.0.0' 'torchvision==0.15.2' 'torchaudio==2.0.2' \
     --index-url https://download.pytorch.org/whl/cu117 \
-    \
     && python3.8 -m venv /env_py38_torch201 \
     && /env_py38_torch201/bin/pip install \
     'torch==2.0.1' 'torchvision==0.15.2' 'torchaudio==2.0.2' \
@@ -54,7 +50,6 @@ RUN python3.10 -m venv /env_py310_torch200 \
     && /env_py310_torch200/bin/pip install \
     'torch==2.0.0' 'torchvision==0.15.2' 'torchaudio==2.0.2' \
     --index-url https://download.pytorch.org/whl/cu117 \
-    \
     && python3.10 -m venv /env_py310_torch201 \
     && /env_py310_torch201/bin/pip install \
     'torch==2.0.1' 'torchvision==0.15.2' 'torchaudio==2.0.2' \
