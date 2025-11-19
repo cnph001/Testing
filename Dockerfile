@@ -18,10 +18,15 @@ RUN apt-get update && apt-get install -y \
     && dpkg-reconfigure --frontend noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-# Add deadsnakes PPA for Python 3.10
+# Add deadsnakes PPA for Python 3.10 and force update
 RUN add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y python3.10 python3.10-dev python3.10-venv && \
+    apt-get update && apt-get install -y \
+    python3.10 python3.10-distutils && \
+    rm -rf /var/lib/apt/lists/*
+
+# Manually install python3.10-dev and python3.10-venv
+RUN apt-get update && apt-get install -y \
+    python3.10-dev python3.10-venv && \
     rm -rf /var/lib/apt/lists/*
 
 # Set alternatives for python
